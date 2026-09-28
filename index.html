@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="id" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portofolio Pengembang & Desainer | Pengalaman Interaktif 3D</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e1e7fe',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            cyan: '#06b6d4',
+                            purple: '#a855f7'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Three.js (3D Library) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP for Smooth Animations & Draggable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #090d16;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-card {
+            background: rgba(17, 24, 39, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .glass-card-hover {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-card-hover:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.3), 0 0 20px rgba(6, 182, 212, 0.2);
+        }
+
+        .glass-nav {
+            background: rgba(9, 13, 22, 0.75);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Gradient & Glow Effects */
+        .text-gradient {
+            background: linear-gradient(135deg, #a855f7 0%, #6366f1 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glow-bg {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* Custom Cursor */
+        #custom-cursor {
+            pointer-events: none;
+            transition: transform 0.15s ease-out, width 0.2s ease, height 0.2s ease, background-color 0.2s ease;
+            z-index: 9999;
+        }
+
+        #custom-cursor-follower {
+            pointer-events: none;
+            transition: transform 0.25s ease-out;
+            z-index: 9998;
+        }
+
+        /* Hide scrollbar for clean aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+
+        /* 3D Canvas Background */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* 3D Tilt Card Base setup */
+        .tilt-card {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        .tilt-content {
+            transform: translateZ(30px);
+        }
+
+        /* Bingkai sertifikat mengikuti rasio sertifikat (A4 landscape) agar tidak ada area hitam */
+        .cert-frame {
+            aspect-ratio: 1286 / 909;
+        }
+
+        /* BARU: bingkai untuk konten Instagram/TikTok (rasio potret media sosial) */
+        .content-frame {
+            aspect-ratio: 4 / 5;
+        }
+
+        /* BARU: Carousel mockup proyek - geser ke samping (swipe/drag di mobile, tombol panah di desktop) */
+        .carousel-track {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .carousel-track::-webkit-scrollbar {
+            display: none;
+        }
+        .carousel-slide {
+            scroll-snap-align: center;
+        }
+        .frame-phone {
+            aspect-ratio: 1464 / 1994;
+        }
+        .frame-laptop {
+            aspect-ratio: 16 / 9;
+        }
+        .carousel-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 9999px;
+            background: rgba(255,255,255,0.35);
+            transition: all 0.25s ease;
+        }
+        .carousel-dot.active {
+            width: 18px;
+            background: #06b6d4;
+        }
+
+        /* Lanyard Interactive Styling */
+        .lanyard-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .lanyard-wrapper:active {
+            cursor: grabbing;
+        }
+        .lanyard-strap {
+            width: 8px;
+            height: 64px;
+            background: linear-gradient(180deg, #4f46e5 0%, #06b6d4 100%);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+            border-radius: 4px;
+        }
+        .lanyard-clip {
+            width: 28px;
+            height: 16px;
+            background: #d1d5db;
+            border-radius: 4px;
+            margin-top: -2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            border: 1px solid #9ca3af;
+        }
+    </style>
+</head>
+<body class="selection:bg-brand-500 selection:text-white">
+
+    <!-- Interactive 3D Three.js Canvas -->
+    <canvas id="canvas-bg"></canvas>
+
+    <!-- Custom Micro-interaction Cursor -->
+    <div id="custom-cursor" class="fixed w-3 h-3 bg-brand-cyan rounded-full top-0 left-0 -translate-x-1/2 -translate-y-1/2 hidden md:block"></div>
+    <div id="custom-cursor-follower" class="fixed w-8 h-8 border border-brand-500/50 rounded-full top-0 left-0 -translate-x-1/2 -translate-y-1/2 hidden md:block"></div>
+
+    <!-- Navigation Bar -->
+    <header class="fixed top-0 left-0 w-full z-50 glass-nav transition-all duration-300">
+        <div class="w-full max-w-[110rem] mx-auto px-6 lg:px-8 py-4 flex justify-between items-center gap-6 xl:gap-10">
+            <a href="#" class="text-base 2xl:text-lg font-bold tracking-wider text-white flex items-center gap-2 group shrink-0 whitespace-nowrap">
+                <span class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-brand-cyan flex items-center justify-center text-white font-mono font-black text-sm shadow-lg group-hover:scale-105 transition-transform shrink-0">
+                    &lt;/&gt;
+                </span>
+                <span class="font-mono whitespace-nowrap">
+                    <span class="hidden 2xl:inline">Portofolio Irviean Yoga Mahardika</span>
+                    <span class="2xl:hidden">Irviean</span><span class="text-brand-cyan">.dev</span>
+                </span>
+            </a>
+
+            <!-- Desktop Menu -->
+            <nav class="hidden lg:flex flex-1 justify-center items-center gap-4 xl:gap-6 2xl:gap-8 text-sm font-medium text-gray-300 whitespace-nowrap">
+                <a href="#about" class="hover:text-brand-cyan transition-colors">Tentang Saya</a>
+                <a href="#skills" class="hover:text-brand-cyan transition-colors">Keahlian</a>
+                <a href="#projects" class="hover:text-brand-cyan transition-colors">Proyek</a>
+                <a href="#organization" class="hover:text-brand-cyan transition-colors">Organisasi</a>
+                <a href="#content" class="hover:text-brand-cyan transition-colors">Konten</a>
+                <a href="#certifications" class="hover:text-brand-cyan transition-colors">Sertifikasi</a>
+                <a href="#contact" class="hover:text-brand-cyan transition-colors">Kontak</a>
+            </nav>
+
+            <div class="flex items-center gap-4 shrink-0 lg:ml-2">
+                <a href="#contact" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-brand-cyan text-white text-sm font-medium hover:opacity-90 transition-all shadow-lg shadow-brand-500/20 active:scale-95 whitespace-nowrap">
+                    <span>Hubungi Saya</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </a>
+                
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="lg:hidden text-gray-300 hover:text-white p-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="hidden lg:hidden glass-card border-t border-gray-800 px-6 py-4 flex flex-col gap-4 text-gray-300">
+            <a href="#about" class="mobile-link hover:text-brand-cyan transition-colors py-1">Tentang Saya</a>
+            <a href="#skills" class="mobile-link hover:text-brand-cyan transition-colors py-1">Keahlian</a>
+            <a href="#projects" class="mobile-link hover:text-brand-cyan transition-colors py-1">Proyek</a>
+            <a href="#organization" class="mobile-link hover:text-brand-cyan transition-colors py-1">Organisasi</a>
+            <a href="#content" class="mobile-link hover:text-brand-cyan transition-colors py-1">Konten</a>
+            <a href="#certifications" class="mobile-link hover:text-brand-cyan transition-colors py-1">Sertifikasi</a>
+            <a href="#contact" class="mobile-link hover:text-brand-cyan transition-colors py-1">Kontak</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center relative pt-28 pb-16 sm:pt-24 sm:pb-12 px-6">
+        <!-- Glow accents -->
+        <div class="glow-bg w-96 h-96 bg-brand-purple top-1/4 -left-20"></div>
+        <div class="glow-bg w-96 h-96 bg-brand-cyan bottom-1/4 -right-20"></div>
+
+        <div class="max-w-5xl mx-auto text-center z-10 flex flex-col items-center">
+
+            <!-- Floating Availability Badge (Disesuaikan untuk Keperluan Magang) -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border-brand-500/30 mb-6 animate-bounce">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-xs font-mono font-medium text-gray-300">Mencari Kesempatan Magang / Internship · Terbuka untuk Kolaborasi</span>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+                <span class="block">Membangun</span>
+                <span class="block text-gradient">Aplikasi & Website</span>
+                <span class="block">Modern & Kreatif</span>
+            </h1>
+
+            <!-- Typing Subtitle -->
+            <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mb-10 h-12 flex items-center justify-center font-mono">
+                <span id="typing-text"></span><span class="animate-pulse text-brand-cyan">|</span>
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-wrap items-center justify-center gap-4 mb-12">
+                <a href="#projects" class="px-8 py-4 rounded-xl bg-gradient-to-r from-brand-600 to-brand-cyan text-white font-semibold flex items-center gap-3 shadow-xl shadow-brand-500/25 hover:shadow-brand-500/40 hover:scale-105 transition-all">
+                    <span>Lihat Karya Saya</span>
+                    <i class="fa-solid fa-compass"></i>
+                </a>
+                <a href="#contact" class="px-8 py-4 rounded-xl glass-card text-white font-semibold flex items-center gap-3 hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105">
+                    <span>Hubungi Saya</span>
+                    <i class="fa-regular fa-paper-plane"></i>
+                </a>
+            </div>
+
+            <!-- Glowing Social Links -->
+            <div class="flex items-center gap-6 text-xl">
+                <a href="https://github.com/Irviean" target="_blank" class="w-12 h-12 rounded-full glass-card flex items-center justify-center text-gray-300 hover:text-white hover:border-brand-cyan hover:scale-110 transition-all">
+                    <i class="fa-brands fa-github"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/irviean-yoga-mahardika-3698bb34b" target="_blank" class="w-12 h-12 rounded-full glass-card flex items-center justify-center text-gray-300 hover:text-white hover:border-brand-500 hover:scale-110 transition-all">
+                    <i class="fa-brands fa-linkedin-in"></i>
+                </a>
+                <a href="https://www.instagram.com/irvieann_?stkn=MXdqc25kcHV0MW1qZw==" target="_blank" class="w-12 h-12 rounded-full glass-card flex items-center justify-center text-gray-300 hover:text-white hover:border-pink-500 hover:scale-110 transition-all">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+                <a href="mailto:yogam3091@gmail.com" class="w-12 h-12 rounded-full glass-card flex items-center justify-center text-gray-300 hover:text-white hover:border-brand-purple hover:scale-110 transition-all">
+                    <i class="fa-solid fa-envelope"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <a href="#about" class="hidden sm:flex absolute bottom-4 left-1/2 -translate-x-1/2 flex-col items-center gap-3 text-gray-500 hover:text-white transition-colors">
+            <span class="text-xs font-mono tracking-widest uppercase">Gulir</span>
+            <i class="fa-solid fa-chevron-down animate-bounce text-sm"></i>
+        </a>
+    </section>
+
+    <!-- About & Skills Bento Grid Section -->
+    <section id="about" class="py-24 px-6 max-w-7xl mx-auto relative z-10">
+        <div class="text-center mb-16">
+            <h2 class="text-xs font-mono font-semibold tracking-widest uppercase text-brand-cyan mb-2">TENTANG SAYA & KEMAMPUAN</h2>
+            <p class="text-3xl sm:text-4xl font-extrabold text-white">Ringkasan</p>
+        </div>
+
+        <!-- Bento Grid Layout -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            
+            <!-- Bento Box 1: Bio (2 cols) -->
+            <div class="md:col-span-2 glass-card glass-card-hover rounded-3xl p-8 tilt-card flex flex-col justify-between">
+                <div class="tilt-content">
+                    <div class="w-12 h-12 rounded-2xl bg-brand-600/20 text-brand-cyan flex items-center justify-center text-2xl mb-6">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4 text-white">Pengembang Full-Stack Kreatif & Antusias Web 3D</h3>
+                    <p class="text-gray-400 leading-relaxed mb-6 text-justify">
+                        Saya Irviean Yoga Mahardika, mahasiswa aktif semester 5 Program Studi D4 Teknologi Rekayasa Multimedia di Politeknik Negeri Media Kreatif. Berfokus pada persimpangan antara Teknologi Informasi, Jaringan Komputer, dan Media Digital Interaktif, saya menggabungkan fondasi rekayasa teknis dengan kreativitas berbasis industri. Pengalaman aktif sebagai Google Student Ambassador 2026 memperkuat kemampuan saya dalam mengelola alur kerja proyek, beradaptasi dengan teknologi baru, serta membangun komunikasi tim yang efektif. Didukung oleh sertifikasi dari Dicoding dan pemahaman jaringan melalui Cisco Networking Academy serta penguasaan Git/GitHub, saya siap membawa semangat belajar, kedisiplinan, dan kemampuan pemecahan masalah untuk berkontribusi langsung pada program magang di perusahaan Anda.
+                    </p>
+                </div>
+                <div class="flex items-center gap-4 text-sm font-mono text-brand-cyan">
+                    <span>Berbasis di Bogor, Indonesia</span>
+                    <span>•</span>
+                    <span>Terbuka untuk Magang & Kolaborasi</span>
+                </div>
+            </div>
+
+            <!-- Bento Box 2: Lanyard Foto - tetap bisa ditarik & memantul -->
+            <div class="md:col-span-1 lg:col-span-2 relative z-20 glass-card glass-card-hover rounded-3xl p-4 flex flex-col items-center justify-center">
+                <div id="lanyard-container" class="lanyard-wrapper w-full">
+                    <!-- Tali Lanyard -->
+                    <div class="lanyard-strap"></div>
+                    <!-- Pengait Lanyard -->
+                    <div class="lanyard-clip"></div>
+                    <!-- ID Card Foto -->
+                    <div class="glass-card p-3 rounded-2xl border-brand-500/40 shadow-2xl flex flex-col items-center bg-gray-900/90 w-full mt-0">
+                        <div class="relative w-full aspect-[4/5] rounded-xl overflow-hidden border border-white/20 mb-4 shadow-inner">
+                            <!-- PETUNJUK: Ganti src="" di bawah ini dengan foto kamu, contoh: src="foto-saya.jpg" -->
+                            <img id="profile-img" src="img/Gemini_Generated_Image_poeprqpoeprqpoep.jfif" alt="Foto Profil Irviean Yoga Mahardika" class="w-full h-full object-cover object-top" draggable="false">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        </div>
+                        <span class="text-sm font-bold text-white tracking-wide">IRVIEAN YOGA MAHARDIKA</span>
+                        <span class="text-xs font-mono text-brand-cyan">Full Stack Developer</span>
+                    </div>
+                </div>
+                <p class="text-[11px] font-mono text-gray-400 mt-3 flex items-center gap-1">
+                    <i class="fa-solid fa-hand-pointer animate-pulse text-brand-cyan"></i> Tarik / geser ID Card untuk efek pantulan
+                </p>
+            </div>
+
+            <!-- Bento Box 4: Skill & Tools (Span 4) -->
+            <div id="skills" class="md:col-span-3 lg:col-span-4 glass-card glass-card-hover rounded-3xl p-8">
+
+                <!-- Bagian 1: Skill -->
+                <h3 class="text-xl font-bold mb-6 text-white flex items-center gap-3">
+                    <i class="fa-solid fa-star text-brand-cyan"></i> Skill
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-10">
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-solid fa-mobile-screen-button text-3xl text-sky-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">Application Development</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-solid fa-robot text-3xl text-purple-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">AI-Assisted Development</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-solid fa-globe text-3xl text-cyan-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">Web Development</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-solid fa-film text-3xl text-pink-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">Editing Video</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-solid fa-video text-3xl text-red-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">Videographer</span>
+                    </div>
+                </div>
+
+                <!-- Bagian 2: Tools -->
+                <h3 class="text-xl font-bold mb-6 text-white flex items-center gap-3">
+                    <i class="fa-solid fa-screwdriver-wrench text-brand-cyan"></i> Tools
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-solid fa-code text-3xl text-blue-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">Visual Studio Code</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-solid fa-server text-3xl text-orange-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">XAMPP</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-brands fa-figma text-3xl text-pink-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">Figma</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-solid fa-pen-ruler text-3xl text-teal-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">Canva</span>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col items-center gap-3 text-center hover:border-brand-500/50 hover:bg-white/5 transition-all group">
+                        <i class="fa-solid fa-scissors text-3xl text-gray-200 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-sm font-medium text-gray-300">CapCut</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Projects Section (DIROMBAK: carousel mockup asli, deskripsi, link GitHub/Google Drive) -->
+    <section id="projects" class="py-24 px-6 max-w-7xl mx-auto relative z-10">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+            <div>
+                <h2 class="text-xs font-mono font-semibold tracking-widest uppercase text-brand-cyan mb-2">PORTOFOLIO PILIHAN</h2>
+                <p class="text-3xl sm:text-4xl font-extrabold text-white">Pameran Proyek Interaktif</p>
+            </div>
+
+            <!-- Category Filters (DITAMBAH: Desain & Game) -->
+            <div class="flex flex-wrap gap-2 mt-6 md:mt-0">
+                <button class="filter-btn active px-4 py-2 rounded-xl text-sm font-medium glass-card border-brand-500 text-white transition-all" data-filter="all">Semua Proyek</button>
+                <button class="filter-btn px-4 py-2 rounded-xl text-sm font-medium glass-card text-gray-400 hover:text-white transition-all" data-filter="website">Website</button>
+                <button class="filter-btn px-4 py-2 rounded-xl text-sm font-medium glass-card text-gray-400 hover:text-white transition-all" data-filter="aplikasi">Aplikasi</button>
+                <button class="filter-btn px-4 py-2 rounded-xl text-sm font-medium glass-card text-gray-400 hover:text-white transition-all" data-filter="game">Game</button>
+                <button class="filter-btn px-4 py-2 rounded-xl text-sm font-medium glass-card text-gray-400 hover:text-white transition-all" data-filter="video">Video</button>
+            </div>
+        </div>
+
+        <!-- Project Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="projects-grid">
+
+            <!-- ============ PROJECT 1: PAWITRA BUDAYA (Mobile, sudah hosting -> GitHub) ============ -->
+            <div class="project-card glass-card glass-card-hover rounded-3xl overflow-hidden tilt-card group" data-category="aplikasi">
+                <div class="proyek-carousel relative">
+                    <div class="carousel-track frame-phone flex overflow-x-auto snap-x snap-mandatory">
+                        <!-- PETUNJUK: taruh 10 gambar mockup Pawitra di folder img/proyek/pawitra/ dengan nama file sama seperti di bawah -->
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/awal.jpg" alt="Pawitra - Halaman Awal" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/regis.jpg" alt="Pawitra - Registrasi" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/lgin.jpg" alt="Pawitra - Login" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/materi.jpg" alt="Pawitra - Materi Budaya" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/detail.jpg" alt="Pawitra - Detail Wayang Kulit" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/kuis.jpg" alt="Pawitra - Kuis Budaya" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/kalku.jpg" alt="Pawitra - Kalkulator Weton" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/ttl.jpg" alt="Pawitra - Pilih Tanggal Lahir" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/profil-saya.jpg" alt="Pawitra - Profil Saya" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/edit.jpg" alt="Pawitra - Edit Profil" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                    </div>
+                    <button class="carousel-prev absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="carousel-next absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <div class="carousel-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"></div>
+                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-mono bg-sky-500/80 text-white backdrop-blur-md z-10">Aplikasi</span>
+                </div>
+                <div class="p-6 tilt-content">
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">Aplikasi Edukasi Budaya Pawitra</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">Pawitra Budaya adalah aplikasi media digital interaktif berbasis mobile dan web yang dirancang untuk mengenalkan serta melestarikan kekayaan budaya lokal, khususnya budaya Jawa, kepada generasi muda. Dikembangkan menggunakan framework Flutter dan bahasa Dart, aplikasi ini menggabungkan materi edukasi visual seperti Aksara Jawa, Wayang, dan Gamelan dengan fitur interaktif seperti kuis evaluasi real-time, kalkulator Kalender Weton Jawa, serta integrasi Quotable API untuk kutipan bijak dinamis. Dipercantik dengan antarmuka tematik bernuansa Brown Dark dan Gold serta latar audio Gending Jawa, Pawitra Budaya menghadirkan pengalaman belajar budaya yang imersif, modern, dan responsif di berbagai perangkat.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex gap-2">
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Flutter</span>
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Mobile</span>
+                        </div>
+                        <!-- PETUNJUK: ganti href di bawah dengan link repo GitHub Pawitra yang sudah kamu hosting -->
+                        <a href="https://irviean.github.io/Pawitra-Budaya/" target="_blank" class="text-brand-cyan hover:text-white text-sm font-semibold flex items-center gap-1.5">
+                            <i class="fa-brands fa-github"></i> <span>Buka di GitHub</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ PROJECT 2: STAYEASE (Web, -> Google Drive) ============ -->
+            <div class="project-card glass-card glass-card-hover rounded-3xl overflow-hidden tilt-card group" data-category="website">
+                <div class="proyek-carousel relative">
+                    <div class="carousel-track frame-laptop flex overflow-x-auto snap-x snap-mandatory">
+                        <!-- PETUNJUK: taruh 22 gambar mockup StayEase di folder img/proyek/stayease/ dengan nama file sama seperti di bawah -->
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/01-Beranda11.jpg" alt="StayEase - Beranda" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/02-Beranda-Hero12.jpg" alt="StayEase - Beranda Hero" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/03-Login13.jpg" alt="StayEase - Login" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/04. register14.jpg" alt="StayEase - Register" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/05-Pesanan-Saya15.jpg" alt="StayEase - Pesanan Saya" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/konfirmasi pembayaran 16.jpg" alt="StayEase - Konfirmasi Pembayaran" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/07-Profile-Akun17.jpg" alt="StayEase - Profile Akun" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/08-Profile-Info18.jpg" alt="StayEase - Profile Info" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/09-Tentang-Kami-a19.jpg" alt="StayEase - Tentang Kami a" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/10-Tentang-Kami-b20.jpg" alt="StayEase - Tentang Kami b" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/11-Tentang-Kami-c21.jpg" alt="StayEase - Tentang Kami c" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/12-Tentang-Kami-d22.jpg" alt="StayEase - Tentang Kami d" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/13-Hubungi-Kami-a23.jpg" alt="StayEase - Hubungi Kami a" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/14-Hubungi-Kami-b24.jpg" alt="StayEase - Hubungi Kami b" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/15-Form-Refund-a25.jpg" alt="StayEase - Form Refund a" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/16-Form-Refund-b26.jpg" alt="StayEase - Form Refund b" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/17-Form-Refund-c27.jpg" alt="StayEase - Form Refund c" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/18-Syarat-Refund-a28.jpg" alt="StayEase - Syarat Refund a" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/19-Syarat-Refund-b29.jpg" alt="StayEase - Syarat Refund b" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/refund 30.jpg" alt="StayEase - Syarat Refund c" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/21-Syarat-Refund-d31.jpg" alt="StayEase - Syarat Refund d" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/22-Footer32.jpg" alt="StayEase - Footer" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                    </div>
+                    <button class="carousel-prev absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="carousel-next absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <div class="carousel-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"></div>
+                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-mono bg-red-500/80 text-white backdrop-blur-md z-10">Website</span>
+                </div>
+                <div class="p-6 tilt-content">
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">StayEase</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">StayEase adalah aplikasi pemesanan akomodasi dan manajemen penginapan berbasis web yang dikembangkan menggunakan framework Laravel. Aplikasi ini dirancang untuk memberikan pengalaman reservasi kamar yang praktis dan intuitif, memungkinkan pengguna menjelajahi berbagai pilihan kamar, memfilter berdasarkan fasilitas, serta melihat transparansi harga secara real-time. Memanfaatkan keandalan backend Laravel dalam mengelola basis data dan sistem transaksi yang aman, StayEase menghadirkan solusi reservasi digital yang efisien dari eksplorasi awal hingga tahap konfirmasi pemesanan.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex gap-2">
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Web</span>
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">UI/UX</span>
+                        </div>
+                        <!-- PETUNJUK: ganti href di bawah dengan link Google Drive hasil StayEase -->
+                        <a href="https://drive.google.com/drive/folders/1GrzaBLcCH3EzQN6Sf6ua26W3wv7kPlgx?hl=ID" target="_blank" class="text-brand-cyan hover:text-white text-sm font-semibold flex items-center gap-1.5">
+                            <i class="fa-brands fa-google-drive"></i> <span>Lihat di Google Drive</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ PROJECT 3: TEE.WORKS (3D/Web, sudah hosting -> GitHub) ============ -->
+            <div class="project-card glass-card glass-card-hover rounded-3xl overflow-hidden tilt-card group" data-category="website">
+                <div class="proyek-carousel relative">
+                    <div class="carousel-track frame-laptop flex overflow-x-auto snap-x snap-mandatory">
+                        <!-- PETUNJUK: taruh 4 gambar mockup Tee.Works di folder img/proyek/teeworks/ dengan nama file sama seperti di bawah -->
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/01-Beranda.jpg" alt="Tee.Works - Beranda" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/02-Collection.jpg" alt="Tee.Works - Collection" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/03-About.jpg" alt="Tee.Works - About" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/04-Contact.jpg" alt="Tee.Works - Contact" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                    </div>
+                    <button class="carousel-prev absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="carousel-next absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <div class="carousel-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"></div>
+                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-mono bg-brand-purple/80 text-white backdrop-blur-md z-10">Website</span>
+                </div>
+                <div class="p-6 tilt-content">
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">Tee.Works Brand Showcase 3D</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">TEE.WORKS merupakan proyek pengembangan platform web dan katalog digital yang dibangun untuk menampilkan koleksi pakaian secara modern, fungsional, dan berorientasi pada pengalaman visual pengguna (visual-driven user experience). Mengusung pendekatan desain UI/UX yang minimalis namun penuh karakter, platform ini dirancang untuk memaksimalkan presentasi setiap produk melalui tata letak (layout) yang dinamis, interaktivitas galeri, serta alur eksplorasi yang mulus bagi pengunjung.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex gap-2">
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Html</span>
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Css</span>
+                        </div>
+                        <!-- PETUNJUK: ganti href di bawah dengan link repo GitHub Tee.Works yang sudah kamu hosting -->
+                        <a href="https://irviean.github.io/tee.worksweb/" target="_blank" class="text-brand-cyan hover:text-white text-sm font-semibold flex items-center gap-1.5">
+                            <i class="fa-brands fa-github"></i> <span>Buka di GitHub</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ PROJECT 4: MAHASISWACOLLAB (Mobile -> GitHub) ============ -->
+            <div class="project-card glass-card glass-card-hover rounded-3xl overflow-hidden tilt-card group" data-category="aplikasi">
+                <div class="proyek-carousel relative">
+                    <div class="carousel-track frame-phone flex overflow-x-auto snap-x snap-mandatory">
+                        <!-- PETUNJUK: taruh 10 gambar mockup MahasiswaCollab di folder img/proyek/mahasiswa-collab/ dengan nama file sama seperti di bawah -->
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/01-Splash-Screen.jpg" alt="MahasiswaCollab - Splash Screen" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/02-Welcome-Page.jpg" alt="MahasiswaCollab - Welcome Page" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/03-Login.jpg" alt="MahasiswaCollab - Login" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/04-Register.jpg" alt="MahasiswaCollab - Register" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/05-Beranda.jpg" alt="MahasiswaCollab - Beranda" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/06-Detail-Proyek.jpg" alt="MahasiswaCollab - Detail Proyek" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/07-Opsi-Proyek.jpg" alt="MahasiswaCollab - Opsi Proyek" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/08-Edit-Kolaborasi.jpg" alt="MahasiswaCollab - Edit Kolaborasi" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/09-Profil-Saya.jpg" alt="MahasiswaCollab - Profil Saya" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/10-Edit-Profil.jpg" alt="MahasiswaCollab - Edit Profil" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                    </div>
+                    <button class="carousel-prev absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="carousel-next absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <div class="carousel-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"></div>
+                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-mono bg-sky-500/80 text-white backdrop-blur-md z-10">Mobile App</span>
+                </div>
+                <div class="p-6 tilt-content">
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">MahasiswaCollab</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">Mahasiswacollab adalah aplikasi mobile berbasis Android yang dikembangkan menggunakan Android Studio dan bahasa pemrogramam Kotlin, dirancang untuk memfasilitasi kolaborasi dan pembentukan tim antar mahasiswa lintas program studi. Melalui antarmuka yang intuitif dan responsif, aplikasi ini memungkinkan pengguna menemukan mitra proyek akademis, mempublikasikan ide, serta berbagi keahlian secara terstruktur. Mahasiswacollab hadir sebagai solusi wadah jejaring akademik digital untuk mendorong inovasi dan kerja sama tim di lingkungan perguruan tinggi.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex gap-2">
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Mobile</span>
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Android Studio</span>
+                        </div>
+                        <!-- PETUNJUK: ganti href di bawah dengan link repo GitHub MahasiswaCollab -->
+                        <a href="https://github.com/Irviean/MAHASISWA-COLLAB" target="_blank" class="text-brand-cyan hover:text-white text-sm font-semibold flex items-center gap-1.5">
+                            <i class="fa-brands fa-github"></i> <span>Buka di GitHub</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ PROJECT 5: ECO-SORT GAME (Game -> Google Drive) ============ -->
+            <div class="project-card glass-card glass-card-hover rounded-3xl overflow-hidden tilt-card group" data-category="game">
+                <div class="proyek-carousel relative">
+                    <div class="carousel-track frame-laptop flex overflow-x-auto snap-x snap-mandatory">
+                        <!-- PETUNJUK: taruh gambar mockup EcoSort di folder img/proyek/ecosort/ dengan nama file sama seperti di bawah. Tambahkan slide lain di sini jika ada mockup tambahan -->
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/EcoSort-Game-Mockup.jpg" alt="Eco-Sort - Gameplay" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                    </div>
+                    <button class="carousel-prev absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="carousel-next absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <div class="carousel-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"></div>
+                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-mono bg-emerald-500/80 text-white backdrop-blur-md z-10">Game</span>
+                </div>
+                <div class="p-6 tilt-content">
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">Eco-Sort</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">Eco Sort Game adalah gim edukasi interaktif yang dikembangkan menggunakan game engine Unity, dirancang untuk meningkatkan kesadaran lingkungan melalui mekanisme pemilahan sampah yang menyenangkan. Menggabungkan kontrol yang responsif, elemen visual interaktif, dan sistem skor dinamis, gim ini mengajak pemain memilah berbagai jenis sampah—seperti organik, anorganik, dan B3—ke dalam kategori yang tepat. Eco Sort Game menghadirkan pengalaman belajar yang edukatif, imersif, dan adaptif untuk dimainkan di berbagai perangkat.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex gap-2">
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Game</span>
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Unity</span>
+                        </div>
+                        <!-- PETUNJUK: ganti href di bawah dengan link Google Drive hasil/build game Eco-Sort -->
+                        <a href="https://drive.google.com/drive/folders/1dUZRm0gYOuJkC_WuhpnTnkutCkq6H5PH?usp=sharing" target="_blank" class="text-brand-cyan hover:text-white text-sm font-semibold flex items-center gap-1.5">
+                            <i class="fa-brands fa-google-drive"></i> <span>Lihat di Google Drive</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ PROJECT 6: VIDEO MICROTEACHING LIDM 2025 (Video -> YouTube) ============ -->
+            <div class="project-card glass-card glass-card-hover rounded-3xl overflow-hidden tilt-card group" data-category="video">
+                <div class="proyek-carousel relative">
+                    <div class="carousel-track frame-laptop flex overflow-x-auto snap-x snap-mandatory">
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/01-Microteaching-LIDM2025.jpg" alt="Video - Microteaching LIDM 2025" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                    </div>
+                    <button class="carousel-prev absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="carousel-next absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <div class="carousel-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"></div>
+                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-mono bg-red-600/80 text-white backdrop-blur-md z-10">Video</span>
+                </div>
+                <div class="p-6 tilt-content">
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">Microteaching LIDM 2025</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">LIDM 2025 - Microteaching Digital (Edukasi Kesehatan Mata) adalah proyek karya media pembelajaran digital interaktif yang dirancang untuk Lomba Inovasi Digital Mahasiswa (LIDM) 2025 pada divisi Microteaching Digital. Karya ini berfokus pada penyampaian materi edukasi kesehatan panca indra mata bagi peserta didik dengan pendekatan pengajaran yang menyenangkan, interaktif, dan berbasis media multimedia. Menggabungkan stimulasi visual, animasi studi kasus bahaya penggunaan gadget berlebihan, pengenalan anatomi mata, hingga aturan durasi layar, proyek ini menghadirkan pengalaman belajar yang partisipatif, integratif, serta berorientasi pada pembentukan kebiasaan hidup sehat sejak dini.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex gap-2">
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Video</span>
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">CapCut</span>
+                        </div>
+                        <!-- PETUNJUK: ganti href di bawah dengan link YouTube video Microteaching LIDM 2025 -->
+                        <a href="https://youtu.be/usesCC13_Jk" target="_blank" class="text-brand-cyan hover:text-white text-sm font-semibold flex items-center gap-1.5">
+                            <i class="fa-brands fa-youtube"></i> <span>Tonton di YouTube</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ PROJECT 7: VIDEO AMIN YANG BERBEDA (Video -> YouTube) ============ -->
+            <div class="project-card glass-card glass-card-hover rounded-3xl overflow-hidden tilt-card group" data-category="video">
+                <div class="proyek-carousel relative">
+                    <div class="carousel-track frame-laptop flex overflow-x-auto snap-x snap-mandatory">
+                        <div class="carousel-slide w-full h-full shrink-0 flex items-center justify-center bg-black/30"><img src="img/02-AminYangBerbeda-Iranali.jpg" alt="Video - Amin Yang Berbeda" class="w-full h-full object-cover cursor-pointer" onclick="openImage(this.src, this.alt)"></div>
+                    </div>
+                    <button class="carousel-prev absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                    <button class="carousel-next absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                    <div class="carousel-dots absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10"></div>
+                    <span class="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-mono bg-red-600/80 text-white backdrop-blur-md z-10">Video</span>
+                </div>
+                <div class="p-6 tilt-content">
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">Amin Yang Berbeda</h3>
+                    <p class="text-gray-400 text-sm mb-4 text-justify">AMIN YANG BERBEDA - Film Pendek adalah karya naratif audio-visual yang mengisahkan tentang dinamika toleransi, perbedaan keyakinan, dan nilai kemanusiaan di tengah ritme kehidupan perkotaan. Menggabungkan sinematografi yang natural, penyuntingan gambar yang hangat, serta penceritaan berbasis dialog emosional, film pendek ini mengeksplorasi perjalanan dua individu yang memiliki cara berdoa dan sudut pandang berbeda namun tetap saling menghormati. Proyek ini menampilkan perpaduan antara aspek teknik produksi multimedia, perancangan skenario, dan storytelling visual yang bermakna mendalam.</p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex gap-2">
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Video</span>
+                            <span class="text-xs font-mono px-2 py-1 rounded glass-card text-gray-300">Videografer</span>
+                        </div>
+                        <!-- PETUNJUK: ganti href di bawah dengan link YouTube video Amin Yang Berbeda -->
+                        <a href="https://youtu.be/uB3YiOr5h9A" target="_blank" class="text-brand-cyan hover:text-white text-sm font-semibold flex items-center gap-1.5">
+                            <i class="fa-brands fa-youtube"></i> <span>Tonton di YouTube</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Organizational Contributions Section -->
+    <section id="organization" class="py-24 px-6 max-w-7xl mx-auto relative z-10">
+        <div class="text-center mb-16">
+            <h2 class="text-xs font-mono font-semibold tracking-widest uppercase text-brand-cyan mb-2">KONTRIBUSI ORGANISASI</h2>
+            <p class="text-3xl sm:text-4xl font-extrabold text-white">Pengalaman & Kepemimpinan</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Org Card 1 -->
+            <div class="glass-card glass-card-hover rounded-3xl p-6 md:p-8 tilt-card group flex flex-col justify-between">
+                <div>
+                    <!-- Slot Gambar Kontribusi Organisasi 1 (klik = pratinjau) -->
+                    <div onclick="openImage('img/1790080801050.jpg', 'Google Student Ambassador (GSA) - Certificate of Participation 2026')" class="cert-frame relative w-full rounded-2xl overflow-hidden mb-6 border border-white/10 group-hover:border-brand-500/50 transition-colors cursor-pointer">
+                        <img src="img/1790080801050.jpg" alt="Google Student Ambassador 2026" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 text-white">
+                            <i class="fa-solid fa-magnifying-glass-plus text-3xl text-brand-cyan"></i>
+                            <span class="text-sm font-semibold">Klik untuk Pratinjau</span>
+                        </div>
+                        <span class="absolute bottom-3 left-3 text-xs font-mono px-3 py-1 rounded-full bg-brand-600/80 text-white backdrop-blur-md">2026</span>
+                    </div>
+                    
+                    <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">Google Student Ambassador (GSA)</h3>
+                    <p class="text-sm font-semibold text-brand-cyan mb-4">Duta Mahasiswa Google 2026 Untuk Politeknik Negeri Media Kreatif</p>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6 text-justify">
+                        Meraih Sertifikat Partisipasi atas kontribusi sebagai Google Student Ambassador (Angkatan 2026). Terpilih dari 81.000 mahasiswa tingkat nasional, serta diakui atas kepemimpinan dalam memelopori adopsi teknologi Google AI di lingkungan kampus Politeknik Negeri Media Kreatif.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-mono text-gray-400">
+                    <i class="fa-solid fa-users text-brand-cyan"></i> Relasi Developer & Kepemimpinan
+                </div>
+            </div>
+
+            <!-- Org Card 2 -->
+            <div class="glass-card glass-card-hover rounded-3xl p-6 md:p-8 tilt-card group flex flex-col justify-between">
+                <div>
+                    <!-- Slot Gambar Kontribusi Organisasi 2 (klik = pratinjau) -->
+                    <div onclick="openImage('img/1790224130934.jpg', 'HIMA Multimedia PoliMedia - Ketua Divisi Humas 2026')" class="cert-frame relative w-full rounded-2xl overflow-hidden mb-6 border border-white/10 group-hover:border-brand-500/50 transition-colors cursor-pointer">
+                        <img src="img/1790224130934.jpg" alt="HIMA Multimedia Polimedia" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 text-white">
+                            <i class="fa-solid fa-magnifying-glass-plus text-3xl text-brand-cyan"></i>
+                            <span class="text-sm font-semibold">Klik untuk Pratinjau</span>
+                        </div>
+                        <span class="absolute bottom-3 left-3 text-xs font-mono px-3 py-1 rounded-full bg-brand-purple/80 text-white backdrop-blur-md">2026</span>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">HIMA Multimedia PoliMedia</h3>
+                    <p class="text-sm font-semibold text-brand-cyan mb-4">Ketua Divisi Hubungan Masyarakat (Humas)</p>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6 text-justify">
+                        Dianugerahi sertifikat resmi sebagai bentuk penghargaan atas dedikasi dan kepemimpinan luar biasa selaku Ketua Divisi Hubungan Masyarakat (Humas) Himpunan Mahasiswa Multimedia (HIMEDIAJKT) 2026. Diakui atas inisiatif strategis dalam mengelola komunikasi publik, memperluas relasi eksternal, dan menyukseskan program-program himpunan mahasiswa.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-mono text-gray-400">
+                    <i class="fa-solid fa-bullhorn text-brand-cyan"></i> Hubungan Masyarakat & Manajemen Acara
+                </div>
+            </div>
+
+            <!-- Org Card 3 -->
+            <div class="glass-card glass-card-hover rounded-3xl p-6 md:p-8 tilt-card group flex flex-col justify-between">
+                <div>
+                    <!-- Slot Gambar Kontribusi Organisasi 3 (klik = pratinjau) -->
+                    <div onclick="openImage('img/1757129300901.jpg', 'Amuba 12 - Ketua Divisi Logistik 2025')" class="cert-frame relative w-full rounded-2xl overflow-hidden mb-6 border border-white/10 group-hover:border-brand-500/50 transition-colors cursor-pointer">
+                        <img src="img/1757129300901.jpg" alt="Amuba 12" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 text-white">
+                            <i class="fa-solid fa-magnifying-glass-plus text-3xl text-brand-cyan"></i>
+                            <span class="text-sm font-semibold">Klik untuk Pratinjau</span>
+                        </div>
+                        <span class="absolute bottom-3 left-3 text-xs font-mono px-3 py-1 rounded-full bg-brand-600/80 text-white backdrop-blur-md">2025</span>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">Amuba 12</h3>
+                    <p class="text-sm font-semibold text-brand-cyan mb-4">Ketua Divisi Logistik</p>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6 text-justify">
+                        Menerima penghargaan atas kepemimpinan strategis dalam mengarahkan tim logistik serta mengelola alokasi sumber daya pada proyek sosial AMUBA 12. Diakui atas kemampuan manajemen operasional yang efektif untuk memastikan kelancaran fasilitas dan menyukseskan seluruh rangkaian kegiatan sosial kemahasiswaan tersebut.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-mono text-gray-400">
+                    <i class="fa-solid fa-people-group text-brand-cyan"></i> Logistik & Operasional
+                </div>
+            </div>
+
+            <!-- Org Card 4 -->
+            <div class="glass-card glass-card-hover rounded-3xl p-6 md:p-8 tilt-card group flex flex-col justify-between">
+                <div>
+                    <!-- Slot Gambar Kontribusi Organisasi 4 (klik = pratinjau) -->
+                    <div onclick="openImage('img/1757129705704.jpg', 'iMedia (Introduction of Multimedia) 2025 - Staf Divisi Pendataan')" class="cert-frame relative w-full rounded-2xl overflow-hidden mb-6 border border-white/10 group-hover:border-brand-500/50 transition-colors cursor-pointer">
+                        <img src="img/1757129705704.jpg" alt="iMedia 2025" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 text-white">
+                            <i class="fa-solid fa-magnifying-glass-plus text-3xl text-brand-cyan"></i>
+                            <span class="text-sm font-semibold">Klik untuk Pratinjau</span>
+                        </div>
+                        <span class="absolute bottom-3 left-3 text-xs font-mono px-3 py-1 rounded-full bg-brand-purple/80 text-white backdrop-blur-md">2025</span>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-brand-cyan transition-colors">iMedia ( Introduction of Multimedia) 2025</h3>
+                    <p class="text-sm font-semibold text-brand-cyan mb-4">Staf Divisi Pendataan</p>
+                    <p class="text-gray-400 text-sm leading-relaxed mb-6 text-justify">
+                        Menerima sertifikat resmi atas kontribusi krusial dalam sistem pengelolaan dan administrasi data mahasiswa pada penyelenggaraan iMedia 2025. Diakui atas ketelitian serta dedikasi tinggi dalam memastikan kelancaran pendataan peserta guna mendukung kesuksesan program di lingkungan kampus Politeknik Negeri Media Kreatif.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-mono text-gray-400">
+                    <i class="fa-solid fa-handshake text-brand-cyan"></i> Manajemen Data & Administrasi
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         BARU: Konten Kreator Section - Karya Konten GSA 2026
+         Menampilkan konten Instagram & TikTok yang dibuat selama
+         menjabat sebagai Google Student Ambassador 2026.
+         ============================================================ -->
+    <section id="content" class="py-24 px-6 max-w-7xl mx-auto relative z-10">
+        <div class="text-center mb-16">
+            <h2 class="text-xs font-mono font-semibold tracking-widest uppercase text-brand-cyan mb-2">KONTEN KREATOR</h2>
+            <p class="text-3xl sm:text-4xl font-extrabold text-white">Karya Konten Google Student Ambassador 2026</p>
+        </div>
+
+        <!-- Kartu Foto Profil + Deskripsi Singkat -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <!-- Kartu Foto Profil GSA -->
+            <div class="md:col-span-1 glass-card glass-card-hover rounded-3xl p-6 tilt-card flex flex-col items-center justify-center text-center">
+                <div class="tilt-content flex flex-col items-center w-full">
+                    <!-- PETUNJUK: Foto ini adalah foto kamu sebagai Google Student Ambassador 2026 (rasio asli 4:5), sudah otomatis disiapkan di img/gsa-profile.jpg. Bingkai memakai rasio yang sama persis dengan foto aslinya agar tidak ada bagian yang terpotong. -->
+                    <div class="relative w-full max-w-[220px] sm:max-w-[260px] mx-auto rounded-2xl overflow-hidden border-2 border-brand-cyan/50 shadow-2xl mb-5" style="aspect-ratio: 4 / 5;">
+                        <img src="img/gsa-profile.jpg" alt="Irviean Yoga Mahardika - Google Student Ambassador 2026" class="w-full h-full object-cover object-top">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+                    </div>
+                    <span class="text-base font-bold text-white">Irviean Yoga Mahardika</span>
+                    <span class="text-xs font-mono text-brand-cyan mt-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-star"></i> #TeamGoogle · GSA 2026
+                    </span>
+                </div>
+            </div>
+
+            <!-- Deskripsi Singkat (rata kiri-kanan) -->
+            <div class="md:col-span-2 glass-card glass-card-hover rounded-3xl p-8 flex flex-col justify-center">
+                <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+                    <i class="fa-solid fa-clapperboard text-brand-cyan"></i> Konten Edukasi Google AI
+                </h3>
+                <p class="text-gray-400 leading-relaxed text-justify">
+                    Sebagai bagian dari tanggung jawab saya selaku Google Student Ambassador 2026, saya secara rutin memproduksi dan mempublikasikan konten edukatif seputar pemanfaatan produk-produk Google AI seperti Gemini dan Google Search AI Mode untuk membantu mahasiswa menghadapi berbagai tantangan sehari-hari, mulai dari mengerjakan skripsi, riset tugas kuliah, hingga meningkatkan keamanan digital di lingkungan kampus. Seluruh konten di bawah ini merupakan hasil karya orisinal saya yang telah dipublikasikan melalui akun Instagram dan TikTok pribadi, disusun dengan gaya visual dan copywriting yang komunikatif agar mudah dipahami dan relevan bagi kalangan mahasiswa.
+                </p>
+            </div>
+        </div>
+
+        <!-- Grid Konten Instagram & TikTok (BARU: layout masonry, rasio gambar asli dipertahankan agar tidak ada yang terpotong -->
+        <div class="columns-2 sm:columns-3 lg:columns-4 gap-5" id="content-grid">
+
+            <!-- Konten 1 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-01.jpg', 'Deep Research for the Thesis Grind - Ubah Stress Menjadi Sukses dengan Gemini AI')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 608;">
+                    <img src="img/konten-01.jpg" alt="Deep Research for the Thesis Grind" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-instagram"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Deep Research for the Thesis Grind</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">Instagram</p>
+                </div>
+            </div>
+
+            <!-- Konten 2 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-02.jpg', 'Pusing Nyari Kado Buat Bestie? Edisi Budget Mahasiswa & Unik')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 608;">
+                    <img src="img/konten-02.jpg" alt="Pusing Nyari Kado Buat Bestie" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-instagram"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Pusing Nyari Kado Buat Bestie?</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">Instagram</p>
+                </div>
+            </div>
+
+            <!-- Konten 3 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-03.jpg', 'Capek Ngetik Keyword Satu-Satu di Google?')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 1376;">
+                    <img src="img/konten-03.jpg" alt="Capek Ngetik Keyword Satu-Satu di Google" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-instagram"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Capek Ngetik Keyword Satu-Satu?</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">Instagram</p>
+                </div>
+            </div>
+
+            <!-- Konten 4 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-04.jpg', 'Capek Riset dan Nyari Tempat Nongkrong Berjam-jam?')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 1497;">
+                    <img src="img/konten-04.jpg" alt="Capek Riset dan Nyari Tempat Nongkrong" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-instagram"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Capek Riset Tempat Nongkrong?</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">Instagram</p>
+                </div>
+            </div>
+
+            <!-- Konten 5 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-05.jpg', 'Materi Kuliah atau Labirin?')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 1342;">
+                    <img src="img/konten-05.jpg" alt="Materi Kuliah atau Labirin" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-instagram"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Materi Kuliah atau Labirin?</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">Instagram</p>
+                </div>
+            </div>
+
+            <!-- Konten 6 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-06.jpg', 'GSA 2026 Inauguration Core Memory Recap')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 608;">
+                    <img src="img/konten-06.jpg" alt="GSA 2026 Inauguration Core Memory Recap" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-instagram"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">GSA 2026 Inauguration Recap</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">Instagram</p>
+                </div>
+            </div>
+
+            <!-- Konten 7 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-07.jpg', 'Latihan Ujian Animasi Karakter Unity bareng Gemini')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 608;">
+                    <img src="img/konten-07.jpg" alt="Latihan Ujian Animasi Karakter Unity" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-tiktok"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Latihan Ujian Animasi Unity</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">TikTok</p>
+                </div>
+            </div>
+
+            <!-- Konten 8 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-08.jpg', 'Kenalin, Gemini 3.5 Flash!')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 608;">
+                    <img src="img/konten-08.jpg" alt="Kenalin Gemini 3.5 Flash" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-instagram"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Kenalin, Gemini 3.5 Flash!</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">Instagram</p>
+                </div>
+            </div>
+
+            <!-- Konten 9 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-09.jpg', 'Cara Jadi WhatsApp Group Hero')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 608;">
+                    <img src="img/konten-09.jpg" alt="Cara Jadi WhatsApp Group Hero" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-tiktok"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Cara Jadi WhatsApp Group Hero</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">TikTok</p>
+                </div>
+            </div>
+
+            <!-- Konten 10 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-10.jpg', 'Gimana Google I/O 2026 Bakal Ngerubah Cara Kita Kuliah?')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 844 / 474;">
+                    <img src="img/konten-10.jpg" alt="Google I/O 2026" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-instagram"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Google I/O 2026 & Cara Kuliah</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">Instagram</p>
+                </div>
+            </div>
+
+            <!-- Konten 11 -->
+            <div class="content-card glass-card glass-card-hover rounded-2xl overflow-hidden tilt-card group mb-5 break-inside-avoid">
+                <div onclick="openImage('img/konten-11.jpg', 'Udah Apply Magang Ke Sana-sini Tapi Kok Gak Pernah Tembus?')" class="relative w-full overflow-hidden cursor-pointer" style="aspect-ratio: 1080 / 608;">
+                    <img src="img/konten-11.jpg" alt="Udah Apply Magang Tapi Gak Tembus" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                    </div>
+                    <span class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white text-xs"><i class="fa-brands fa-instagram"></i></span>
+                </div>
+                <div class="p-4">
+                    <p class="text-xs font-semibold text-white leading-snug">Udah Apply Magang Tapi Gak Tembus?</p>
+                    <p class="text-[11px] font-mono text-brand-cyan mt-1">Instagram</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tautan menuju akun sosial media -->
+        <div class="flex flex-wrap items-center justify-center gap-4 mt-10">
+            <a href="https://www.instagram.com/irvieann_?stkn=MXdqc25kcHV0MW1qZw==" target="_blank" class="px-6 py-3 rounded-xl glass-card text-white text-sm font-semibold flex items-center gap-2 hover:border-pink-500 transition-all">
+                <i class="fa-brands fa-instagram"></i> <span>Lihat Selengkapnya di Instagram</span>
+            </a>
+            <!-- PETUNJUK: ganti href di bawah dengan link profil TikTok kamu -->
+            <a href="#" target="_blank" class="px-6 py-3 rounded-xl glass-card text-white text-sm font-semibold flex items-center gap-2 hover:border-white/40 transition-all">
+                <i class="fa-brands fa-tiktok"></i> <span>Lihat Selengkapnya di TikTok</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Licenses & Certifications Section -->
+    <section id="certifications" class="py-24 px-6 max-w-7xl mx-auto relative z-10">
+        <div class="text-center mb-16">
+            <h2 class="text-xs font-mono font-semibold tracking-widest uppercase text-brand-cyan mb-2">LISENSI & SERTIFIKASI</h2>
+            <p class="text-3xl sm:text-4xl font-extrabold text-white">Sertifikasi Profesional</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            <!-- Cert Card 1 -->
+            <div class="glass-card glass-card-hover rounded-3xl p-5 tilt-card group flex flex-col justify-between">
+                <div>
+                    <div onclick="openImage('img/1790080801050.jpg', 'Google Student Ambassador Class of 2026 - Certificate of Participation')" class="cert-frame relative w-full rounded-2xl overflow-hidden mb-4 border border-white/10 group-hover:border-brand-500/50 transition-colors cursor-pointer">
+                        <img src="img/1790080801050.jpg" alt="Sertifikat Google Student Ambassador" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-1 text-white">
+                            <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                            <span class="text-xs font-semibold">Pratinjau</span>
+                        </div>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1 group-hover:text-brand-cyan transition-colors">Google Student Ambassador Class of 2026 - Certificate of Participation</h3>
+                    <p class="text-xs font-mono text-gray-400 mb-3">Penerbit: Google</p>
+                </div>
+                <div class="flex items-center justify-between text-xs font-mono text-brand-cyan">
+                    <span>Tidak ada masa kedaluwarsa</span>
+                    <i class="fa-solid fa-award text-lg"></i>
+                </div>
+            </div>
+
+            <!-- Cert Card 2 -->
+            <div class="glass-card glass-card-hover rounded-3xl p-5 tilt-card group flex flex-col justify-between">
+                <div>
+                    <div onclick="openImage('img/1777947291642.jpg', 'Google for Education: Next-Level Google Tools Hacks & Must Have Google Certification')" class="cert-frame relative w-full rounded-2xl overflow-hidden mb-4 border border-white/10 group-hover:border-brand-500/50 transition-colors cursor-pointer">
+                        <img src="img/1777947291642.jpg" alt="Sertifikat Google for Education" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-1 text-white">
+                            <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                            <span class="text-xs font-semibold">Pratinjau</span>
+                        </div>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1 group-hover:text-brand-cyan transition-colors">Google for Education: Next-Level Google Tools Hacks & Must Have Google Certification</h3>
+                    <p class="text-xs font-mono text-gray-400 mb-3">Penerbit: Google For Education</p>
+                </div>
+                <div class="flex items-center justify-between text-xs font-mono text-brand-cyan">
+                    <span>Tidak ada masa kedaluwarsa</span>
+                    <i class="fa-solid fa-award text-lg"></i>
+                </div>
+            </div>
+
+            <!-- Cert Card 3 -->
+            <div class="glass-card glass-card-hover rounded-3xl p-5 tilt-card group flex flex-col justify-between">
+                <div>
+                    <div onclick="openImage('img/1777947414019.jpg', 'Career Acceleration and Productivity with Gemini - Dicoding Indonesia')" class="cert-frame relative w-full rounded-2xl overflow-hidden mb-4 border border-white/10 group-hover:border-brand-500/50 transition-colors cursor-pointer">
+                        <img src="img/1777947414019.jpg" alt="Sertifikat Career Acceleration with Gemini" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-1 text-white">
+                            <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                            <span class="text-xs font-semibold">Pratinjau</span>
+                        </div>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1 group-hover:text-brand-cyan transition-colors">Career Acceleration and Productivity with Gemini</h3>
+                    <p class="text-xs font-mono text-gray-400 mb-3">Penerbit: Dicoding Indonesia</p>
+                </div>
+                <div class="flex items-center justify-between text-xs font-mono text-brand-cyan">
+                    <span>Berlaku s/d April 2029</span>
+                    <i class="fa-solid fa-award text-lg"></i>
+                </div>
+            </div>
+
+            <!-- Cert Card 4 -->
+            <div class="glass-card glass-card-hover rounded-3xl p-5 tilt-card group flex flex-col justify-between">
+                <div>
+                    <div onclick="openImage('img/1777947533230.jpg', 'Gemini Certified Student - Google For Education')" class="cert-frame relative w-full rounded-2xl overflow-hidden mb-4 border border-white/10 group-hover:border-brand-500/50 transition-colors cursor-pointer">
+                        <img src="img/1777947533230.jpg" alt="Sertifikat Gemini Certified Student" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-1 text-white">
+                            <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                            <span class="text-xs font-semibold">Pratinjau</span>
+                        </div>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1 group-hover:text-brand-cyan transition-colors">Gemini Certified Student</h3>
+                    <p class="text-xs font-mono text-gray-400 mb-3">Penerbit: Google For Education</p>
+                </div>
+                <div class="flex items-center justify-between text-xs font-mono text-brand-cyan">
+                    <span>Berlaku s/d April 2029</span>
+                    <i class="fa-solid fa-award text-lg"></i>
+                </div>
+            </div>
+
+            <!-- Cert Card 5 -->
+            <div class="glass-card glass-card-hover rounded-3xl p-5 tilt-card group flex flex-col justify-between">
+                <div>
+                    <div onclick="openImage('img/IMG_0269.JPG.jpeg', 'Play IT Hackathon UI/UX Design - Politeknik Negeri Malang')" class="cert-frame relative w-full rounded-2xl overflow-hidden mb-4 border border-white/10 group-hover:border-brand-500/50 transition-colors cursor-pointer">
+                        <img src="img/IMG_0269.JPG.jpeg" alt="Sertifikat Play IT Hackathon" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-1 text-white">
+                            <i class="fa-solid fa-magnifying-glass-plus text-2xl text-brand-cyan"></i>
+                            <span class="text-xs font-semibold">Pratinjau</span>
+                        </div>
+                    </div>
+                    <h3 class="text-base font-bold text-white mb-1 group-hover:text-brand-cyan transition-colors">Play IT Hackathon UI/UX Design</h3>
+                    <p class="text-xs font-mono text-gray-400 mb-3">Penerbit: Politeknik Negeri Malang</p>
+                </div>
+                <div class="flex items-center justify-between text-xs font-mono text-brand-cyan">
+                    <span>Tidak ada masa kedaluwarsa</span>
+                    <i class="fa-solid fa-award text-lg"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-24 px-6 max-w-5xl mx-auto relative z-10">
+        <div class="glass-card rounded-3xl p-8 sm:p-12 relative overflow-hidden">
+            <div class="glow-bg w-80 h-80 bg-brand-cyan -top-20 -right-20"></div>
+
+            <div class="max-w-2xl mx-auto text-center mb-10">
+                <h2 class="text-xs font-mono font-semibold tracking-widest uppercase text-brand-cyan mb-2">HUBUNGI SAYA</h2>
+                <h3 class="text-3xl font-extrabold text-white mb-4">Mari Berkolaborasi & Membangun Proyek Bersama</h3>
+                <p class="text-gray-400 text-sm">Punya penawaran magang, proyek menarik, atau ingin berdiskusi? Kirimkan pesan dan saya akan merespons secepatnya.</p>
+            </div>
+
+            <!-- Contact Form -->
+            <form id="contact-form" onsubmit="handleFormSubmit(event)" class="max-w-xl mx-auto space-y-6">
+                <!-- Anti-spam (honeypot): disembunyikan, hanya diisi oleh bot -->
+                <input type="checkbox" id="contact-botcheck" class="hidden" style="display:none" tabindex="-1" autocomplete="off">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-mono text-gray-400 mb-2">NAMA ANDA</label>
+                        <input id="contact-name" type="text" required placeholder="Ahmad Subagja" class="w-full px-4 py-3 rounded-xl glass-card text-white placeholder-gray-500 focus:outline-none focus:border-brand-cyan transition-colors text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-gray-400 mb-2">ALAMAT EMAIL</label>
+                        <input id="contact-email" type="email" required placeholder="ahmad@example.com" class="w-full px-4 py-3 rounded-xl glass-card text-white placeholder-gray-500 focus:outline-none focus:border-brand-cyan transition-colors text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-gray-400 mb-2">PESAN ANDA</label>
+                    <textarea id="contact-message" rows="4" required placeholder="Tuliskan pesan atau penawaran Anda..." class="w-full px-4 py-3 rounded-xl glass-card text-white placeholder-gray-500 focus:outline-none focus:border-brand-cyan transition-colors text-sm resize-none"></textarea>
+                </div>
+                
+                <button type="submit" class="w-full py-4 rounded-xl bg-gradient-to-r from-brand-600 to-brand-cyan text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20 hover:opacity-95 transition-all">
+                    <span>Kirim Pesan</span>
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                </button>
+            </form>
+            
+            <!-- Message Success Notification Box -->
+            <div id="form-success" class="hidden max-w-xl mx-auto mt-6 p-4 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-center text-sm font-medium">
+                <i class="fa-solid fa-circle-check mr-2"></i> Terima kasih! Pesan Anda berhasil terkirim.
+            </div>
+            <!-- Message Error Notification Box -->
+            <div id="form-error" class="hidden max-w-xl mx-auto mt-6 p-4 rounded-xl bg-red-500/20 border border-red-500/50 text-red-300 text-center text-sm font-medium">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i> <span id="form-error-text">Pesan gagal terkirim. Silakan coba lagi.</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-6 border-t border-gray-800 text-center text-xs font-mono text-gray-500 relative z-10">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p>&copy; 2026 Irviean Yoga Mahardika. Dibuat dengan Three.js, GSAP & Tailwind CSS.</p>
+            <a href="#" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-brand-cyan text-white font-sans text-sm font-medium hover:opacity-90 transition-all shadow-lg shadow-brand-500/20 active:scale-95">
+                <span>Kembali ke Atas</span>
+                <i class="fa-solid fa-arrow-up text-xs"></i>
+            </a>
+        </div>
+    </footer>
+
+    <!-- Pratinjau Gambar Sertifikat (Lightbox) - klik area gelap / tombol X / tekan Esc untuk menutup -->
+    <div id="image-modal" onclick="closeImage()" class="fixed inset-0 z-[70] bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4 sm:p-8">
+        <div class="relative w-full max-w-6xl flex flex-col items-center">
+            <button onclick="closeImage()" class="absolute -top-2 right-0 sm:-top-4 sm:-right-4 w-11 h-11 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors z-10">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img id="image-modal-img" src="" alt="Pratinjau Sertifikat" onclick="event.stopPropagation()" class="max-h-[80vh] w-auto max-w-full object-contain rounded-xl shadow-2xl border border-white/10 bg-white/5">
+            <p id="image-modal-title" class="mt-4 text-sm font-mono text-gray-300 text-center max-w-3xl"></p>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================================
+           1. THREE.JS 3D INTERACTIVE BACKGROUND SCENE
+           ========================================================= */
+        let scene, camera, renderer, torusKnot, particlesMesh;
+        let mouseX = 0, mouseY = 0;
+
+        function initThreeJS() {
+            const canvas = document.getElementById('canvas-bg');
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const geometry = new THREE.TorusKnotGeometry(10, 3, 100, 16);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x6366f1,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15
+            });
+            torusKnot = new THREE.Mesh(geometry, material);
+            scene.add(torusKnot);
+
+            const particlesCount = 300;
+            const posArray = new Float32Array(particlesCount * 3);
+            for (let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 100;
+            }
+            const particlesGeometry = new THREE.BufferGeometry();
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.15,
+                color: 0x06b6d4,
+                transparent: true,
+                opacity: 0.6
+            });
+            particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+                mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            if (torusKnot) {
+                torusKnot.rotation.x += 0.003;
+                torusKnot.rotation.y += 0.005;
+                torusKnot.rotation.x += (mouseY - torusKnot.rotation.x) * 0.05;
+                torusKnot.rotation.y += (mouseX - torusKnot.rotation.y) * 0.05;
+            }
+            if (particlesMesh) {
+                particlesMesh.rotation.y -= 0.001;
+            }
+            renderer.render(scene, camera);
+        }
+
+        /* =========================================================
+           2. INTERACTIVE LANYARD DRAG & ELASTIC BOUNCE EFFECT (GSAP)
+           ========================================================= */
+        function initInteractiveLanyard() {
+            if (typeof Draggable === 'undefined') return;
+            Draggable.create("#lanyard-container", {
+                type: "x,y",
+                edgeResistance: 0.65,
+                onDrag: function() {
+                    gsap.to("#lanyard-container", { rotation: this.x * 0.15, duration: 0.1 });
+                },
+                onRelease: function() {
+                    gsap.to("#lanyard-container", { x: 0, y: 0, rotation: 0, duration: 1.2, ease: "elastic.out(1, 0.3)" });
+                }
+            });
+        }
+
+        /* =========================================================
+           3. VANILLA 3D CARD TILT EFFECT
+           ========================================================= */
+        function init3DTilt() {
+            const cards = document.querySelectorAll('.tilt-card');
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = (y - centerY) / 15;
+                    const rotateY = (centerX - x) / 15;
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+                    card.style.transition = 'transform 0.5s ease';
+                });
+                card.addEventListener('mouseenter', () => {
+                    card.style.transition = 'none';
+                });
+            });
+        }
+
+        /* =========================================================
+           4. CUSTOM CURSOR TRACKER
+           ========================================================= */
+        function initCustomCursor() {
+            const cursor = document.getElementById('custom-cursor');
+            const follower = document.getElementById('custom-cursor-follower');
+            if (!cursor || !follower) return;
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+                follower.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+            });
+            const interactables = document.querySelectorAll('a, button, input, textarea, .glass-card, .lanyard-wrapper');
+            interactables.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    follower.style.width = '48px';
+                    follower.style.height = '48px';
+                    follower.style.borderColor = '#06b6d4';
+                });
+                el.addEventListener('mouseleave', () => {
+                    follower.style.width = '32px';
+                    follower.style.height = '32px';
+                    follower.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+                });
+            });
+        }
+
+        /* =========================================================
+           5. DYNAMIC TYPING EFFECT (BAHASA INDONESIA)
+           ========================================================= */
+        function initTypingEffect() {
+            const phrases = [
+                "Pengembang Web Full-Stack",
+                "Spesialis Aplikasi Mobile (Flutter)",
+                "Kreator WebGL & 3D Interaktif",
+                "Desainer UI/UX & Antarmuka Modern"
+            ];
+            let phraseIndex = 0;
+            let charIndex = 0;
+            let isDeleting = false;
+            const target = document.getElementById('typing-text');
+
+            function type() {
+                const currentPhrase = phrases[phraseIndex];
+                if (isDeleting) {
+                    target.textContent = currentPhrase.substring(0, charIndex - 1);
+                    charIndex--;
+                } else {
+                    target.textContent = currentPhrase.substring(0, charIndex + 1);
+                    charIndex++;
+                }
+                let speed = isDeleting ? 40 : 80;
+                if (!isDeleting && charIndex === currentPhrase.length) {
+                    speed = 2000;
+                    isDeleting = true;
+                } else if (isDeleting && charIndex === 0) {
+                    isDeleting = false;
+                    phraseIndex = (phraseIndex + 1) % phrases.length;
+                    speed = 500;
+                }
+                setTimeout(type, speed);
+            }
+            type();
+        }
+
+        /* =========================================================
+           6. PROJECT FILTERING LOGIC
+           ========================================================= */
+        function initProjectFilter() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const projectCards = document.querySelectorAll('.project-card');
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => {
+                        b.classList.remove('active', 'border-brand-500', 'text-white');
+                        b.classList.add('text-gray-400');
+                    });
+                    btn.classList.add('active', 'border-brand-500', 'text-white');
+                    btn.classList.remove('text-gray-400');
+
+                    const filter = btn.getAttribute('data-filter');
+
+                    projectCards.forEach(card => {
+                        if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                            card.style.display = 'block';
+                            gsap.fromTo(card, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.4 });
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        }
+
+        /* =========================================================
+           7. PROYEK CAROUSEL - geser mockup ke samping (BARU)
+           ========================================================= */
+        function initProjectCarousels() {
+            document.querySelectorAll('.proyek-carousel').forEach(carousel => {
+                const track = carousel.querySelector('.carousel-track');
+                const slides = track ? Array.from(track.children) : [];
+                const dotsWrap = carousel.querySelector('.carousel-dots');
+                const prevBtn = carousel.querySelector('.carousel-prev');
+                const nextBtn = carousel.querySelector('.carousel-next');
+                if (!track || slides.length === 0) return;
+
+                // Kalau cuma 1 gambar, sembunyikan panah & titik navigasi
+                if (slides.length <= 1) {
+                    if (prevBtn) prevBtn.classList.add('hidden');
+                    if (nextBtn) nextBtn.classList.add('hidden');
+                    if (dotsWrap) dotsWrap.classList.add('hidden');
+                    return;
+                }
+
+                if (dotsWrap) {
+                    dotsWrap.innerHTML = '';
+                    slides.forEach((_, i) => {
+                        const dot = document.createElement('button');
+                        dot.type = 'button';
+                        dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+                        dot.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            slides[i].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                        });
+                        dotsWrap.appendChild(dot);
+                    });
+                }
+                const dots = dotsWrap ? Array.from(dotsWrap.children) : [];
+
+                function updateActiveDot() {
+                    const trackLeft = track.getBoundingClientRect().left;
+                    let closestIdx = 0, closestDist = Infinity;
+                    slides.forEach((slide, i) => {
+                        const dist = Math.abs(slide.getBoundingClientRect().left - trackLeft);
+                        if (dist < closestDist) { closestDist = dist; closestIdx = i; }
+                    });
+                    dots.forEach((d, i) => d.classList.toggle('active', i === closestIdx));
+                }
+
+                let scrollTimer;
+                track.addEventListener('scroll', () => {
+                    clearTimeout(scrollTimer);
+                    scrollTimer = setTimeout(updateActiveDot, 100);
+                });
+
+                if (prevBtn) prevBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' });
+                });
+                if (nextBtn) nextBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    track.scrollBy({ left: track.clientWidth, behavior: 'smooth' });
+                });
+            });
+        }
+
+        /* =========================================================
+           8. PRATINJAU GAMBAR SERTIFIKAT (LIGHTBOX) & FORM
+           ========================================================= */
+        function openImage(src, title) {
+            document.getElementById('image-modal-img').src = src;
+            document.getElementById('image-modal-title').textContent = title || '';
+            document.getElementById('image-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeImage() {
+            document.getElementById('image-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeImage();
+        });
+
+        // ===== FORM KONTAK (Web3Forms) =====
+        // Ganti teks di bawah dengan Access Key dari https://web3forms.com (dikirim ke email kamu)
+        const WEB3FORMS_ACCESS_KEY = '26f33707-2694-4639-8c5e-5f03a6623183';
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            // Bot terdeteksi (honeypot terisi): abaikan diam-diam
+            if (document.getElementById('contact-botcheck').checked) return;
+
+            const form = document.getElementById('contact-form');
+            const btn = form.querySelector('button[type="submit"]');
+            const btnText = btn.querySelector('span');
+            const successBox = document.getElementById('form-success');
+            const errorBox = document.getElementById('form-error');
+            const errorText = document.getElementById('form-error-text');
+
+            const name = document.getElementById('contact-name').value.trim();
+            const email = document.getElementById('contact-email').value.trim();
+            const message = document.getElementById('contact-message').value.trim();
+
+            successBox.classList.add('hidden');
+            errorBox.classList.add('hidden');
+
+            if (WEB3FORMS_ACCESS_KEY.startsWith('MASUKKAN')) {
+                errorText.textContent = 'Access Key belum diisi di kode (lihat konstanta WEB3FORMS_ACCESS_KEY).';
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            const originalText = btnText.textContent;
+            btn.disabled = true;
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+            btnText.textContent = 'Mengirim...';
+
+            try {
+                const response = await fetch('https://api.web3forms.com/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        access_key: WEB3FORMS_ACCESS_KEY,
+                        subject: 'Pesan dari Portofolio - ' + name,
+                        from_name: 'Portofolio Irviean',
+                        name: name,
+                        email: email,
+                        message: message
+                    })
+                });
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    successBox.classList.remove('hidden');
+                    form.reset();
+                    setTimeout(() => { successBox.classList.add('hidden'); }, 8000);
+                } else {
+                    errorText.textContent = result.message || 'Pesan gagal terkirim. Silakan coba lagi.';
+                    errorBox.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorText.textContent = 'Tidak bisa terhubung ke server. Periksa koneksi internet lalu coba lagi.';
+                errorBox.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                btnText.textContent = originalText;
+            }
+        }
+
+        /* =========================================================
+           9. COUNTER & SCROLL ANIMATIONS (GSAP)
+           ========================================================= */
+        function initGSAPAnimations() {
+            gsap.registerPlugin(ScrollTrigger);
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                gsap.to(counter, {
+                    innerText: target,
+                    duration: 2,
+                    snap: { innerText: 1 },
+                    scrollTrigger: { trigger: counter, start: "top 85%" }
+                });
+            });
+            gsap.utils.toArray('.glass-card').forEach(card => {
+                gsap.from(card, {
+                    y: 30,
+                    opacity: 0,
+                    duration: 0.8,
+                    ease: "power2.out",
+                    scrollTrigger: { trigger: card, start: "top 90%" }
+                });
+            });
+        }
+
+        /* Mobile Menu Toggle */
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (mobileBtn && mobileMenu) {
+            mobileBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            document.querySelectorAll('.mobile-link').forEach(link => {
+                link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+            });
+        }
+
+        /* INITIALIZATION ON WINDOW LOAD */
+        window.onload = function () {
+            initThreeJS();
+            animateThree();
+            initInteractiveLanyard();
+            init3DTilt();
+            initCustomCursor();
+            initTypingEffect();
+            initProjectFilter();
+            initProjectCarousels();
+            initGSAPAnimations();
+        };
+    </script>
+</body>
+</html>
